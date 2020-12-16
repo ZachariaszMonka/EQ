@@ -8,7 +8,7 @@ https://botland.com.pl/pl/stm32-discovery/3563-stm32f411e-disco-discovery-stm32f
 https://botland.com.pl/pl/odtwarzacze-mp3-wav-oog-midi/4488-vs1003b-odtwarzacz-mp3-modul-dzwiekowy-z-mikrofonem-waveshare-4038.html
 
 
-Basic assumptions:
+Basic assumptions: /n
 -low-pass filter
 -high-pass filter
 -band pass filter
