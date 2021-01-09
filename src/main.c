@@ -9,6 +9,7 @@
 
 #include "stm32f4xx.h"
 //#include "stm32f411e_discovery.h"
+#include "layers_port.h"
 
 void SystemClock_Config(void);
 void Error_Handler(void);
@@ -17,6 +18,14 @@ int main(void)
 {
 	HAL_Init();
 	SystemClock_Config();
+	LP_init();
+
+
+	LP_LED(LP_LED_GREEN, LP_LED_ON);
+	LP_LED(LP_LED_RED, LP_LED_ON);
+
+
+
 
 	for(;;);
 }
