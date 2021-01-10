@@ -34,7 +34,16 @@ int main(void)
 
 void SystemClock_Config(void)
 {
-	#define FCPU 96000000UL
+	#define SYSCLK_CLOCK 96000000UL
+	#define HCLK_CLOCK 96000000UL
+	#define ETHERNET_PTP_CLOCK 96000000UL
+	#define SYSTEM_TIMER_CLOCK 96000000UL
+	#define FCLK_CLOCK 96000000UL
+	#define APD1_PERIPH_CLOCK 48000000UL
+	#define APD1_TIMER_CLOCK 96000000UL
+	#define APD2_PERIPH_CLOCK 96000000UL
+	#define APD2_TIMER_CLOCK 96000000UL
+	#define I2S_CLOCK 48000000UL
 
 	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
 	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
@@ -70,7 +79,7 @@ void SystemClock_Config(void)
 		Error_Handler();
 	}
 
-	if (HAL_SYSTICK_Config(FCPU/1000UL) != HAL_OK)
+	if (HAL_SYSTICK_Config(SYSCLK_CLOCK/1000UL) != HAL_OK)
 	{
 		Error_Handler();
 	}
