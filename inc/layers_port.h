@@ -47,6 +47,10 @@ typedef enum
 volatile LP_LED_STATUS LLP_led_tab[4];
 volatile uint8_t LLP_tim10_cycle;
 
+void SystemClock_Config(void);
+void Error_Handler(void);
+
+volatile void LLP_iunerrup_tim10(void);
 void LP_init(void);
 void LP_LED(LP_LED_COLOR color, LP_LED_STATUS status);
 
