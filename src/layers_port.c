@@ -32,7 +32,7 @@ void LP_init(void)
 	LLP_gpio.Pin = LP_pin_SCK|LP_pin_MISO|LP_pin_MOSI;
 	LLP_gpio.Mode = GPIO_MODE_AF_PP;
 	LLP_gpio.Pull = GPIO_PULLUP;
-	LLP_gpio.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	LLP_gpio.Speed = GPIO_SPEED_FREQ_MEDIUM;
 	LLP_gpio.Alternate = GPIO_AF5_SPI4;
 	HAL_GPIO_Init(LP_port_SPI, &LLP_gpio);
 
@@ -87,7 +87,7 @@ void LP_init(void)
 	LLP_hspi4.Init.CLKPolarity = SPI_POLARITY_LOW;
 	LLP_hspi4.Init.CLKPhase = SPI_PHASE_1EDGE;
 	LLP_hspi4.Init.NSS = SPI_NSS_SOFT;
-	LLP_hspi4.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
+	LLP_hspi4.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128; //750kbps
 	LLP_hspi4.Init.FirstBit = SPI_FIRSTBIT_MSB;
 	LLP_hspi4.Init.TIMode = SPI_TIMODE_DISABLE;
 	LLP_hspi4.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -99,6 +99,17 @@ void LP_init(void)
 
 	__HAL_SPI_ENABLE(&LLP_hspi4);
 	//end SPI4
+}
+
+void Error_Handler(void)
+{
+
+}
+
+void LP_Delay(uint32_t Delay)
+{
+	//idea sleep MCU
+	HAL_Delay(Delay);
 }
 
 void LP_LED(LP_LED_COLOR color, LP_LED_STATUS status)
@@ -216,10 +227,6 @@ void SystemClock_Config(void)
 	}
 }
 
-	void Error_Handler(void)
-{
-
-}
 
 void LLP_SPI_write(uint8_t* tx_buff , uint16_t size)
 {
@@ -252,5 +259,7 @@ void LLP_SPI_RES_active(void)
 {
 	HAL_GPIO_WritePin(LP_port_RES, LP_pin_RES, RESET);
 }
+
+
 
 //todo function read register of vs1003b

@@ -6,9 +6,6 @@
   ******************************************************************************
 */
 
-
-#include "stm32f4xx.h"
-//#include "stm32f411e_discovery.h"
 #include "layers_port.h"
 
 
@@ -27,8 +24,8 @@ int main(void)
 		LLP_SPI_CS_active();
 		LLP_SPI_read_write(tx_buf, rx_buf, 4);
 		LLP_SPI_CS_inactive();
+		LP_Delay(5);
 
-		HAL_Delay(10);
 	}
 }
 

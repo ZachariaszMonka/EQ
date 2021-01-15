@@ -59,6 +59,7 @@ volatile uint8_t LLP_tim10_cycle;
 
 void SystemClock_Config(void);
 void Error_Handler(void);
+void LP_Delay(uint32_t Delay);
 
 volatile void LLP_iunerrup_tim10(void);
 void LP_init(void);
