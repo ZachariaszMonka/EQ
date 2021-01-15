@@ -15,18 +15,28 @@
 	#include "stm32f4xx.h"
 #endif //includestm32f4xx_h_
 
-
-#define LP_pin_LED_BLUE GPIO_PIN_15 //todo LLP
+//todo pin and port in LLP
+#define LP_pin_LED_BLUE GPIO_PIN_15
 #define LP_pin_LED_RED GPIO_PIN_14
 #define LP_pin_LED_ORANGE GPIO_PIN_13
 #define LP_pin_LED_GREEN GPIO_PIN_12
+#define LP_port_LED GPIOD
 
-#define LP_port_LED GPIOD //todo LLP
+#define LP_pin_MOSI GPIO_PIN_14
+#define LP_pin_MISO GPIO_PIN_13
+#define LP_pin_SCK  GPIO_PIN_12
+#define LP_port_SPI GPIOE
+
+#define LP_pin_CCS  GPIO_PIN_6
+#define LP_pin_DCS  GPIO_PIN_7
+#define LP_pin_DREQ  GPIO_PIN_1
+#define LP_pin_RES  GPIO_PIN_2
+#define LP_port_RES  GPIOD
 
 //TODO encapsulation LLP
 GPIO_InitTypeDef LLP_gpio;
 TIM_HandleTypeDef LLP_tim10;
-
+volatile SPI_HandleTypeDef LLP_hspi4;
 typedef enum
 {
 	LP_LED_OFF = 0U,
@@ -53,5 +63,14 @@ void Error_Handler(void);
 volatile void LLP_iunerrup_tim10(void);
 void LP_init(void);
 void LP_LED(LP_LED_COLOR color, LP_LED_STATUS status);
+
+void LLP_SPI_write(uint8_t* tx_buff , uint16_t size);
+void LLP_SPI_read(uint8_t* rx_buff , uint16_t size);
+void LLP_SPI_read_write(uint8_t* tx_buff,uint8_t* rx_buff , uint16_t size);
+void LLP_SPI_CS_active(void);
+void LLP_SPI_CS_inactive(void);
+void LLP_SPI_RES_active(void);
+void LLP_SPI_RES_inactive(void);
+
 
 #endif // LAYERS_PORT_H_

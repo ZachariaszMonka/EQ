@@ -17,14 +17,18 @@ int main(void)
 
 	LP_init();
 
-	LP_LED(LP_LED_RED, LP_LED_BLINK_5Hz);
-	LP_LED(LP_LED_ORANGE, LP_LED_BLINK_1Hz);
-	LP_LED(LP_LED_BLUE, LP_LED_OFF);
-	LP_LED(LP_LED_GREEN, LP_LED_ON);
+	uint8_t tx_buf[] = {0, 1, 2, 3, 4 };
+	uint8_t rx_buf[] = {1, 1, 1, 1, 1 };
 
+	LP_LED(LP_LED_ORANGE, LP_LED_ON);
 	while(1)
 	{
 
+		LLP_SPI_CS_active();
+		LLP_SPI_read_write(tx_buf, rx_buf, 4);
+		LLP_SPI_CS_inactive();
+
+		HAL_Delay(10);
 	}
 }
 

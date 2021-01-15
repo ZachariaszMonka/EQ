@@ -15,7 +15,12 @@ void LP_init(void)
 	//initialization peripheries using in port_layers library
 
 	//GPIO
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+	__HAL_RCC_GPIOC_CLK_ENABLE();
 	__HAL_RCC_GPIOD_CLK_ENABLE();
+	__HAL_RCC_GPIOE_CLK_ENABLE();
+	__HAL_RCC_GPIOH_CLK_ENABLE();
 
 	LLP_gpio.Pin = LP_pin_LED_BLUE | LP_pin_LED_GREEN
 			| LP_pin_LED_ORANGE | LP_pin_LED_RED;
@@ -23,6 +28,27 @@ void LP_init(void)
 	LLP_gpio.Pull = GPIO_NOPULL;
 	LLP_gpio.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(LP_port_LED, &LLP_gpio);
+
+	LLP_gpio.Pin = LP_pin_SCK|LP_pin_MISO|LP_pin_MOSI;
+	LLP_gpio.Mode = GPIO_MODE_AF_PP;
+	LLP_gpio.Pull = GPIO_PULLUP;
+	LLP_gpio.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	LLP_gpio.Alternate = GPIO_AF5_SPI4;
+	HAL_GPIO_Init(LP_port_SPI, &LLP_gpio);
+
+	LLP_gpio.Pin = LP_pin_DCS | LP_pin_CCS| LP_pin_RES;
+	LLP_gpio.Mode = GPIO_MODE_OUTPUT_PP;
+	LLP_gpio.Pull = GPIO_NOPULL;
+	LLP_gpio.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(LP_port_RES, &LLP_gpio);
+
+	LLP_gpio.Pin = LP_pin_DREQ;
+	LLP_gpio.Mode = GPIO_MODE_INPUT;
+	LLP_gpio.Pull = GPIO_PULLUP;
+	LLP_gpio.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(LP_port_RES, &LLP_gpio);
+
+
 	//GPIO END
 
 	//VARIABLE
@@ -49,6 +75,30 @@ void LP_init(void)
 	HAL_NVIC_EnableIRQ(TIM1_UP_TIM10_IRQn);
 	HAL_TIM_Base_Start_IT(&LLP_tim10);
 	//end timer 10
+
+	//SPI4
+
+	__HAL_RCC_SPI4_CLK_ENABLE();
+
+	LLP_hspi4.Instance = SPI4;
+	LLP_hspi4.Init.Mode = SPI_MODE_MASTER;
+	LLP_hspi4.Init.Direction = SPI_DIRECTION_2LINES;
+	LLP_hspi4.Init.DataSize = SPI_DATASIZE_8BIT;
+	LLP_hspi4.Init.CLKPolarity = SPI_POLARITY_LOW;
+	LLP_hspi4.Init.CLKPhase = SPI_PHASE_1EDGE;
+	LLP_hspi4.Init.NSS = SPI_NSS_SOFT;
+	LLP_hspi4.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
+	LLP_hspi4.Init.FirstBit = SPI_FIRSTBIT_MSB;
+	LLP_hspi4.Init.TIMode = SPI_TIMODE_DISABLE;
+	LLP_hspi4.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+	LLP_hspi4.Init.CRCPolynomial = 7;
+	if (HAL_SPI_Init(&LLP_hspi4) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
+	__HAL_SPI_ENABLE(&LLP_hspi4);
+	//end SPI4
 }
 
 void LP_LED(LP_LED_COLOR color, LP_LED_STATUS status)
@@ -171,6 +221,36 @@ void SystemClock_Config(void)
 
 }
 
+void LLP_SPI_write(uint8_t* tx_buff , uint16_t size)
+{
+	HAL_SPI_Transmit(&LLP_hspi4, tx_buff, size, HAL_MAX_DELAY);
+}
 
-//void LP_LED()
+void LLP_SPI_read(uint8_t* rx_buff , uint16_t size)
+{
+	HAL_SPI_Receive(&LLP_hspi4, rx_buff, size, HAL_MAX_DELAY);
+}
+void LLP_SPI_read_write(uint8_t* tx_buff,uint8_t* rx_buff , uint16_t size)
+{
+	HAL_SPI_TransmitReceive(&LLP_hspi4, tx_buff, rx_buff, size, HAL_MAX_DELAY);
+}
 
+
+void LLP_SPI_CS_inactive(void)
+{
+	HAL_GPIO_WritePin(LP_port_RES, LP_pin_CCS, SET);
+}
+void LLP_SPI_CS_active(void)
+{
+	HAL_GPIO_WritePin(LP_port_RES, LP_pin_CCS, RESET);
+}
+void LLP_SPI_RES_inactive(void)
+{
+	HAL_GPIO_WritePin(LP_port_RES, LP_pin_RES, SET);
+}
+void LLP_SPI_RES_active(void)
+{
+	HAL_GPIO_WritePin(LP_port_RES, LP_pin_RES, RESET);
+}
+
+//todo function read register of vs1003b
