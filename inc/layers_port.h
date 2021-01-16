@@ -70,11 +70,16 @@ void LLP_SPI_read(uint8_t* rx_buff , uint16_t size);
 void LLP_SPI_read_write(uint8_t* tx_buff,uint8_t* rx_buff , uint16_t size);
 void LLP_SPI_CS_active(void);
 void LLP_SPI_CS_inactive(void);
+void LLP_SPI_DCS_active(void);
+void LLP_SPI_DCS_inactive(void);
 void LLP_SPI_RES_active(void);
 void LLP_SPI_RES_inactive(void);
 void LLP_DREQ_WAIT(void);
 
 uint16_t LP_VS1003_register_read(uint8_t register_adres);
 void LP_VS1003_register_write(uint8_t register_adres, uint16_t data);
+
+void LP_VS1003_set_bit(uint8_t register_adres, uint16_t bit);
+void LP_VS1003_reset_bit(uint8_t register_adres, uint16_t bit);
 
 #endif // LAYERS_PORT_H_

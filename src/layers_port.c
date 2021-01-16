@@ -99,7 +99,7 @@ void LP_init(void)
 
 	__HAL_SPI_ENABLE(&LLP_hspi4);
 
-	LP_VS1003_register_read(0);
+	//LP_VS1003_register_read(0);
 	//end SPI4
 }
 
@@ -253,6 +253,14 @@ void LLP_SPI_CS_active(void)
 {
 	HAL_GPIO_WritePin(LP_port_RES, LP_pin_CCS, RESET);
 }
+void LLP_SPI_DCS_inactive(void)
+{
+	HAL_GPIO_WritePin(LP_port_RES, LP_pin_DCS, SET);
+}
+void LLP_SPI_DCS_active(void)
+{
+	HAL_GPIO_WritePin(LP_port_RES, LP_pin_DCS, RESET);
+}
 void LLP_SPI_RES_inactive(void)
 {
 	HAL_GPIO_WritePin(LP_port_RES, LP_pin_RES, SET);
@@ -305,4 +313,53 @@ void LP_VS1003_register_write(uint8_t register_adres, uint16_t data)
 	LLP_SPI_write(data_MSB_LSB, 2);
 	LLP_SPI_CS_inactive();
 }
+void LP_VS1003_set_bit(uint8_t register_adres, uint16_t bit)
+	{
+		uint8_t read_mode = 0b00000011;
+		uint8_t write_mode = 0b00000010;
+		uint16_t register_value;
+		LLP_DREQ_WAIT();
+		LLP_SPI_CS_active();
+		LLP_SPI_write(&read_mode,1);
+		LLP_SPI_write(&register_adres,1);
+		uint8_t lsb, msb;
+		LLP_SPI_read(&msb,1);
+		LLP_SPI_read(&lsb,1);
+		LLP_SPI_CS_inactive();
+		register_value = (msb<<8)|(lsb<<0)|bit;
+		LLP_DREQ_WAIT();
+		LLP_SPI_CS_active();
+		LLP_SPI_write(&write_mode,1);
+		LLP_SPI_write(&register_adres,1);
+		uint8_t data_MSB_LSB[2];
+		data_MSB_LSB[1] = (uint8_t)(register_value>>0); //LSB
+		data_MSB_LSB[0] = (uint8_t)(register_value>>8); //MSB
+		LLP_SPI_write(data_MSB_LSB, 2);
+		LLP_SPI_CS_inactive();
+	}
+
+void LP_VS1003_reset_bit(uint8_t register_adres, uint16_t bit)
+	{
+		uint8_t read_mode = 0b00000011;
+		uint8_t write_mode = 0b00000010;
+		uint16_t register_value;
+		LLP_DREQ_WAIT();
+		LLP_SPI_CS_active();
+		LLP_SPI_write(&read_mode,1);
+		LLP_SPI_write(&register_adres,1);
+		uint8_t lsb, msb;
+		LLP_SPI_read(&msb,1);
+		LLP_SPI_read(&lsb,1);
+		LLP_SPI_CS_inactive();
+		register_value = ((msb<<8)|(lsb<<0))&~bit;
+		LLP_DREQ_WAIT();
+		LLP_SPI_CS_active();
+		LLP_SPI_write(&write_mode,1);
+		LLP_SPI_write(&register_adres,1);
+		uint8_t data_MSB_LSB[2];
+		data_MSB_LSB[1] = (uint8_t)(register_value>>0); //LSB
+		data_MSB_LSB[0] = (uint8_t)(register_value>>8); //MSB
+		LLP_SPI_write(data_MSB_LSB, 2);
+		LLP_SPI_CS_inactive();
+	}
 
