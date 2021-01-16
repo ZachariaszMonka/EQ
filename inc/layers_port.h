@@ -31,7 +31,7 @@
 #define LP_pin_DCS  GPIO_PIN_7
 #define LP_pin_DREQ  GPIO_PIN_1
 #define LP_pin_RES  GPIO_PIN_2
-#define LP_port_RES  GPIOD
+#define LP_port_RES  GPIOD //todo
 
 //TODO encapsulation LLP
 GPIO_InitTypeDef LLP_gpio;
@@ -72,6 +72,8 @@ void LLP_SPI_CS_active(void);
 void LLP_SPI_CS_inactive(void);
 void LLP_SPI_RES_active(void);
 void LLP_SPI_RES_inactive(void);
+void LLP_DREQ_WAIT(void);
 
+uint16_t LP_VS1003_register_read(uint8_t register_adres);
 
 #endif // LAYERS_PORT_H_

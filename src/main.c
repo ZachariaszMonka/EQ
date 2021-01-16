@@ -14,20 +14,21 @@ int main(void)
 
 	LP_init();
 
-	uint8_t tx_buf[] = {0, 1, 2, 3, 4 };
-	uint8_t rx_buf[] = {1, 1, 1, 1, 1 };
+	LLP_SPI_RES_active();
+	LP_Delay(5);
+	LLP_SPI_RES_inactive();
 
-	LP_LED(LP_LED_ORANGE, LP_LED_ON);
 	while(1)
 	{
 
-		LLP_SPI_CS_active();
-		LLP_SPI_read_write(tx_buf, rx_buf, 4);
-		LLP_SPI_CS_inactive();
+		uint16_t output[] = {0,0,0,0,0,0,0};
+		output[0] = LP_VS1003_register_read(0);
+		output[1] = LP_VS1003_register_read(1);
+		output[2] = LP_VS1003_register_read(2);
+		output[3] = LP_VS1003_register_read(3);
+
+
 		LP_Delay(5);
 
 	}
 }
-
-
-

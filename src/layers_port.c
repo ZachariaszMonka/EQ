@@ -260,6 +260,26 @@ void LLP_SPI_RES_active(void)
 	HAL_GPIO_WritePin(LP_port_RES, LP_pin_RES, RESET);
 }
 
+void LLP_DREQ_WAIT(void)
+{
+	//idea time out
+	while(HAL_GPIO_ReadPin(LP_port_RES, LP_pin_DREQ)==GPIO_PIN_RESET)
+	{}
+}
 
+uint16_t LP_VS1003_register_read(uint8_t register_adres)
+{
+	uint8_t read_mode = 0b00000011;
 
-//todo function read register of vs1003b
+	LLP_DREQ_WAIT();
+	LLP_SPI_CS_active();
+	LLP_SPI_write(&read_mode,1);
+	LLP_SPI_write(&register_adres,1);
+	uint8_t lsb, msb;
+	LLP_SPI_read(&msb,1);
+	LLP_SPI_read(&lsb,1);
+	LLP_SPI_CS_inactive();
+	return (msb<<8)|(lsb<<0);
+}
+
+//todo function write register of vs1003b
