@@ -98,6 +98,8 @@ void LP_init(void)
 	}
 
 	__HAL_SPI_ENABLE(&LLP_hspi4);
+
+	LP_VS1003_register_read(0);
 	//end SPI4
 }
 
@@ -269,6 +271,10 @@ void LLP_DREQ_WAIT(void)
 
 uint16_t LP_VS1003_register_read(uint8_t register_adres)
 {
+	//example use
+	//output[0] = LP_VS1003_register_read(0);
+
+
 	uint8_t read_mode = 0b00000011;
 
 	LLP_DREQ_WAIT();
@@ -282,4 +288,21 @@ uint16_t LP_VS1003_register_read(uint8_t register_adres)
 	return (msb<<8)|(lsb<<0);
 }
 
-//todo function write register of vs1003b
+void LP_VS1003_register_write(uint8_t register_adres, uint16_t data)
+{
+	//example use
+	//LP_VS1003_register_write(3,0xC430);
+
+	uint8_t write_mode = 0b00000010;
+
+	LLP_DREQ_WAIT();
+	LLP_SPI_CS_active();
+	LLP_SPI_write(&write_mode,1);
+	LLP_SPI_write(&register_adres,1);
+	uint8_t data_MSB_LSB[2];
+	data_MSB_LSB[1] = (uint8_t)(data>>0); //LSB
+	data_MSB_LSB[0] = (uint8_t)(data>>8); //MSB
+	LLP_SPI_write(data_MSB_LSB, 2);
+	LLP_SPI_CS_inactive();
+}
+

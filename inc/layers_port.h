@@ -75,5 +75,6 @@ void LLP_SPI_RES_inactive(void);
 void LLP_DREQ_WAIT(void);
 
 uint16_t LP_VS1003_register_read(uint8_t register_adres);
+void LP_VS1003_register_write(uint8_t register_adres, uint16_t data);
 
 #endif // LAYERS_PORT_H_
