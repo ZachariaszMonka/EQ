@@ -82,4 +82,6 @@ void LP_VS1003_register_write(uint8_t register_adres, uint16_t data);
 void LP_VS1003_set_bit(uint8_t register_adres, uint16_t bit);
 void LP_VS1003_reset_bit(uint8_t register_adres, uint16_t bit);
 
+void LP_VS1003_WRITE_DATA(uint8_t* co_tu_dac,uint16_t size);
+
 #endif // LAYERS_PORT_H_

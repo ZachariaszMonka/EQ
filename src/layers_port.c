@@ -314,52 +314,84 @@ void LP_VS1003_register_write(uint8_t register_adres, uint16_t data)
 	LLP_SPI_CS_SCI_inactive_SDI_active();
 }
 void LP_VS1003_set_bit(uint8_t register_adres, uint16_t bit)
-	{
-		uint8_t read_mode = 0b00000011;
-		uint8_t write_mode = 0b00000010;
-		uint16_t register_value;
-		LLP_DREQ_WAIT();
-		LLP_SPI_CS_SCI_active_SDI_inactive();
-		LLP_SPI_write(&read_mode,1);
-		LLP_SPI_write(&register_adres,1);
-		uint8_t lsb, msb;
-		LLP_SPI_read(&msb,1);
-		LLP_SPI_read(&lsb,1);
-		LLP_SPI_CS_SCI_inactive_SDI_active();
-		register_value = (msb<<8)|(lsb<<0)|bit;
-		LLP_DREQ_WAIT();
-		LLP_SPI_CS_SCI_active_SDI_inactive();
-		LLP_SPI_write(&write_mode,1);
-		LLP_SPI_write(&register_adres,1);
-		uint8_t data_MSB_LSB[2];
-		data_MSB_LSB[1] = (uint8_t)(register_value>>0); //LSB
-		data_MSB_LSB[0] = (uint8_t)(register_value>>8); //MSB
-		LLP_SPI_write(data_MSB_LSB, 2);
-		LLP_SPI_CS_SCI_inactive_SDI_active();
-	}
+{
+	uint8_t read_mode = 0b00000011;
+	uint8_t write_mode = 0b00000010;
+	uint16_t register_value;
+	LLP_DREQ_WAIT();
+	LLP_SPI_CS_SCI_active_SDI_inactive();
+	LLP_SPI_write(&read_mode,1);
+	LLP_SPI_write(&register_adres,1);
+	uint8_t lsb, msb;
+	LLP_SPI_read(&msb,1);
+	LLP_SPI_read(&lsb,1);
+	LLP_SPI_CS_SCI_inactive_SDI_active();
+	register_value = (msb<<8)|(lsb<<0)|bit;
+	LLP_DREQ_WAIT();
+	LLP_SPI_CS_SCI_active_SDI_inactive();
+	LLP_SPI_write(&write_mode,1);
+	LLP_SPI_write(&register_adres,1);
+	uint8_t data_MSB_LSB[2];
+	data_MSB_LSB[1] = (uint8_t)(register_value>>0); //LSB
+	data_MSB_LSB[0] = (uint8_t)(register_value>>8); //MSB
+	LLP_SPI_write(data_MSB_LSB, 2);
+	LLP_SPI_CS_SCI_inactive_SDI_active();
+}
 
 void LP_VS1003_reset_bit(uint8_t register_adres, uint16_t bit)
-	{
-		uint8_t read_mode = 0b00000011;
-		uint8_t write_mode = 0b00000010;
-		uint16_t register_value;
-		LLP_DREQ_WAIT();
-		LLP_SPI_CS_SCI_active_SDI_inactive();
-		LLP_SPI_write(&read_mode,1);
-		LLP_SPI_write(&register_adres,1);
-		uint8_t lsb, msb;
-		LLP_SPI_read(&msb,1);
-		LLP_SPI_read(&lsb,1);
-		LLP_SPI_CS_SCI_inactive_SDI_active();
-		register_value = ((msb<<8)|(lsb<<0))&~bit;
-		LLP_DREQ_WAIT();
-		LLP_SPI_CS_SCI_active_SDI_inactive();
-		LLP_SPI_write(&write_mode,1);
-		LLP_SPI_write(&register_adres,1);
-		uint8_t data_MSB_LSB[2];
-		data_MSB_LSB[1] = (uint8_t)(register_value>>0); //LSB
-		data_MSB_LSB[0] = (uint8_t)(register_value>>8); //MSB
-		LLP_SPI_write(data_MSB_LSB, 2);
-		LLP_SPI_CS_SCI_inactive_SDI_active();
+{
+	uint8_t read_mode = 0b00000011;
+	uint8_t write_mode = 0b00000010;
+	uint16_t register_value;
+	LLP_DREQ_WAIT();
+	LLP_SPI_CS_SCI_active_SDI_inactive();
+	LLP_SPI_write(&read_mode,1);
+	LLP_SPI_write(&register_adres,1);
+	uint8_t lsb, msb;
+	LLP_SPI_read(&msb,1); //
+	LLP_SPI_read(&lsb,1);
+	LLP_SPI_CS_SCI_inactive_SDI_active();
+	register_value = ((msb<<8)|(lsb<<0))&~bit;
+	LLP_DREQ_WAIT();
+	LLP_SPI_CS_SCI_active_SDI_inactive();
+	LLP_SPI_write(&write_mode,1);
+	LLP_SPI_write(&register_adres,1);
+	uint8_t data_MSB_LSB[2];
+	data_MSB_LSB[1] = (uint8_t)(register_value>>0); //LSB
+	data_MSB_LSB[0] = (uint8_t)(register_value>>8); //MSB
+	LLP_SPI_write(data_MSB_LSB, 2);
+	LLP_SPI_CS_SCI_inactive_SDI_active();
+}
+void LP_VS1003_WRITE_DATA(uint8_t* co_tu_dac,uint16_t size)
+// send max 32 bytes
+{
+
+	uint8_t* output =co_tu_dac;
+	uint16_t buff_size = size;
+	while(buff_size!=0){
+		LLP_DREQ_WAIT();  //wait to permission to send data
+		if(buff_size >=32)
+		{
+			LLP_SPI_CS_SCI_inactive_SDI_active();
+			for(uint8_t i=0;i<32;i++)
+			{
+				LLP_SPI_write(output,32);
+			}
+			LLP_SPI_CS_SCI_active_SDI_inactive();
+			buff_size-=32;
+		}
+		else
+		{
+			LLP_SPI_CS_SCI_inactive_SDI_active();
+			for(uint8_t i=0;i<buff_size;i++)
+			{
+				LLP_SPI_write(output,buff_size);
+			}
+			LLP_SPI_CS_SCI_active_SDI_inactive();
+			buff_size-=buff_size;
+		}
+
 	}
 
+
+}
