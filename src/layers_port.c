@@ -83,7 +83,7 @@ void LP_init(void)
 	LLP_hspi4.Instance = SPI4;
 	LLP_hspi4.Init.Mode = SPI_MODE_MASTER;
 	LLP_hspi4.Init.Direction = SPI_DIRECTION_2LINES;
-	LLP_hspi4.Init.DataSize = SPI_DATASIZE_8BIT;
+	LLP_hspi4.Init.DataSize = SPI_DATASIZE_16BIT;
 	LLP_hspi4.Init.CLKPolarity = SPI_POLARITY_LOW;
 	LLP_hspi4.Init.CLKPhase = SPI_PHASE_1EDGE;
 	LLP_hspi4.Init.NSS = SPI_NSS_SOFT;
@@ -230,16 +230,16 @@ void SystemClock_Config(void)
 }
 
 
-void LLP_SPI_write(uint8_t* tx_buff , uint16_t size)
+void LLP_SPI_write(uint16_t* tx_buff , uint16_t size)
 {
 	HAL_SPI_Transmit(&LLP_hspi4, tx_buff, size, HAL_MAX_DELAY);
 }
 
-void LLP_SPI_read(uint8_t* rx_buff , uint16_t size)
+void LLP_SPI_read(uint16_t* rx_buff , uint16_t size)
 {
 	HAL_SPI_Receive(&LLP_hspi4, rx_buff, size, HAL_MAX_DELAY);
 }
-void LLP_SPI_read_write(uint8_t* tx_buff,uint8_t* rx_buff , uint16_t size)
+void LLP_SPI_read_write(uint16_t* tx_buff,uint16_t* rx_buff , uint16_t size)
 {
 	HAL_SPI_TransmitReceive(&LLP_hspi4, tx_buff, rx_buff, size, HAL_MAX_DELAY);
 }
@@ -283,17 +283,19 @@ uint16_t LP_VS1003_register_read(uint8_t register_adres)
 	//output[0] = LP_VS1003_register_read(0);
 
 
-	uint8_t read_mode = 0b00000011;
+	uint16_t read_mode = 0b00000011;
 
 	LLP_DREQ_WAIT();
 	LLP_SPI_CS_SCI_active_SDI_inactive();
-	LLP_SPI_write(&read_mode,1);
-	LLP_SPI_write(&register_adres,1);
-	uint8_t lsb, msb;
-	LLP_SPI_read(&msb,1);
-	LLP_SPI_read(&lsb,1);
+	uint16_t send_msb,send_lsb;
+	send_msb = (read_mode)<<8;
+	send_lsb = (register_adres)<<0;
+	uint16_t send = send_msb|send_lsb;
+	LLP_SPI_write(&send,1);
+	uint16_t out;
+	LLP_SPI_read(&out,1);
 	LLP_SPI_CS_SCI_inactive_SDI_active();
-	return (msb<<8)|(lsb<<0);
+	return out;
 }
 
 void LP_VS1003_register_write(uint8_t register_adres, uint16_t data)
@@ -301,40 +303,41 @@ void LP_VS1003_register_write(uint8_t register_adres, uint16_t data)
 	//example use
 	//LP_VS1003_register_write(3,0xC430);
 
-	uint8_t write_mode = 0b00000010;
+	uint16_t write_mode = 0b00000010;
 
 	LLP_DREQ_WAIT();
 	LLP_SPI_CS_SCI_active_SDI_inactive();
-	LLP_SPI_write(&write_mode,1);
-	LLP_SPI_write(&register_adres,1);
-	uint8_t data_MSB_LSB[2];
-	data_MSB_LSB[1] = (uint8_t)(data>>0); //LSB
-	data_MSB_LSB[0] = (uint8_t)(data>>8); //MSB
-	LLP_SPI_write(data_MSB_LSB, 2);
+	uint16_t send_msb,send_lsb;
+	send_msb = (write_mode)<<8;
+	send_lsb = (register_adres)<<0;
+	uint16_t send = send_msb|send_lsb;
+	LLP_SPI_write(&send,1);
+	LLP_SPI_write(&data,1);
 	LLP_SPI_CS_SCI_inactive_SDI_active();
 }
 void LP_VS1003_set_bit(uint8_t register_adres, uint16_t bit)
 {
 	uint8_t read_mode = 0b00000011;
 	uint8_t write_mode = 0b00000010;
-	uint16_t register_value;
+	uint16_t buf;
+	uint16_t send_msb,send_lsb;
+	uint16_t send;
 	LLP_DREQ_WAIT();
 	LLP_SPI_CS_SCI_active_SDI_inactive();
-	LLP_SPI_write(&read_mode,1);
-	LLP_SPI_write(&register_adres,1);
-	uint8_t lsb, msb;
-	LLP_SPI_read(&msb,1);
-	LLP_SPI_read(&lsb,1);
+	send_msb = (read_mode)<<8;
+	send_lsb = (register_adres)<<0;
+	send = send_msb|send_lsb;
+	LLP_SPI_write(&send,1);
+	LLP_SPI_read(&buf,1);
 	LLP_SPI_CS_SCI_inactive_SDI_active();
-	register_value = (msb<<8)|(lsb<<0)|bit;
+	buf |= bit;
 	LLP_DREQ_WAIT();
 	LLP_SPI_CS_SCI_active_SDI_inactive();
-	LLP_SPI_write(&write_mode,1);
-	LLP_SPI_write(&register_adres,1);
-	uint8_t data_MSB_LSB[2];
-	data_MSB_LSB[1] = (uint8_t)(register_value>>0); //LSB
-	data_MSB_LSB[0] = (uint8_t)(register_value>>8); //MSB
-	LLP_SPI_write(data_MSB_LSB, 2);
+	send_msb = (write_mode)<<8;
+	send_lsb = (register_adres)<<0;
+	send = send_msb|send_lsb;
+	LLP_SPI_write(&send,1);
+	LLP_SPI_write(&buf,1);
 	LLP_SPI_CS_SCI_inactive_SDI_active();
 }
 
@@ -342,56 +345,45 @@ void LP_VS1003_reset_bit(uint8_t register_adres, uint16_t bit)
 {
 	uint8_t read_mode = 0b00000011;
 	uint8_t write_mode = 0b00000010;
-	uint16_t register_value;
+	uint16_t buf;
+	uint16_t send_msb,send_lsb;
+	uint16_t send;
 	LLP_DREQ_WAIT();
 	LLP_SPI_CS_SCI_active_SDI_inactive();
-	LLP_SPI_write(&read_mode,1);
-	LLP_SPI_write(&register_adres,1);
-	uint8_t lsb, msb;
-	LLP_SPI_read(&msb,1); //
-	LLP_SPI_read(&lsb,1);
+	send_msb = (read_mode)<<8;
+	send_lsb = (register_adres)<<0;
+	send = send_msb|send_lsb;
+	LLP_SPI_write(&send,1);
+	LLP_SPI_read(&buf,1);
 	LLP_SPI_CS_SCI_inactive_SDI_active();
-	register_value = ((msb<<8)|(lsb<<0))&~bit;
+	buf &= ~bit;
 	LLP_DREQ_WAIT();
 	LLP_SPI_CS_SCI_active_SDI_inactive();
-	LLP_SPI_write(&write_mode,1);
-	LLP_SPI_write(&register_adres,1);
-	uint8_t data_MSB_LSB[2];
-	data_MSB_LSB[1] = (uint8_t)(register_value>>0); //LSB
-	data_MSB_LSB[0] = (uint8_t)(register_value>>8); //MSB
-	LLP_SPI_write(data_MSB_LSB, 2);
+	send_msb = (write_mode)<<8;
+	send_lsb = (register_adres)<<0;
+	send = send_msb|send_lsb;
+	LLP_SPI_write(&send,1);
+	LLP_SPI_write(&buf,1);
 	LLP_SPI_CS_SCI_inactive_SDI_active();
 }
-void LP_VS1003_WRITE_DATA(uint8_t* co_tu_dac,uint16_t size)
-// send max 32 bytes
+void LP_VS1003_WRITE_DATA(uint16_t* data,uint16_t size)
 {
 
-	uint8_t* output =co_tu_dac;
-	uint16_t buff_size = size;
-	while(buff_size!=0){
+	uint16_t cycle = 0;
+	while(size > cycle)
+	{
+		LLP_SPI_CS_SCI_inactive_SDI_active();
 		LLP_DREQ_WAIT();  //wait to permission to send data
-		if(buff_size >=32)
+		if(size - cycle >=16)
 		{
-			LLP_SPI_CS_SCI_inactive_SDI_active();
-			for(uint8_t i=0;i<32;i++)
-			{
-				LLP_SPI_write(output,32);
-			}
-			LLP_SPI_CS_SCI_active_SDI_inactive();
-			buff_size-=32;
+			LLP_SPI_write(data + cycle,16);
+			cycle+=16;
 		}
 		else
 		{
-			LLP_SPI_CS_SCI_inactive_SDI_active();
-			for(uint8_t i=0;i<buff_size;i++)
-			{
-				LLP_SPI_write(output,buff_size);
-			}
-			LLP_SPI_CS_SCI_active_SDI_inactive();
-			buff_size-=buff_size;
+			LLP_SPI_write(data + cycle,1);
+			cycle+=1;
 		}
-
+		LLP_SPI_CS_SCI_active_SDI_inactive();
 	}
-
-
 }

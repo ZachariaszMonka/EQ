@@ -65,9 +65,9 @@ volatile void LLP_iunerrup_tim10(void);
 void LP_init(void);
 void LP_LED(LP_LED_COLOR color, LP_LED_STATUS status);
 
-void LLP_SPI_write(uint8_t* tx_buff , uint16_t size);
-void LLP_SPI_read(uint8_t* rx_buff , uint16_t size);
-void LLP_SPI_read_write(uint8_t* tx_buff,uint8_t* rx_buff , uint16_t size);
+void LLP_SPI_write(uint16_t* tx_buff , uint16_t size);
+void LLP_SPI_read(uint16_t* rx_buff , uint16_t size);
+void LLP_SPI_read_write(uint16_t* tx_buff,uint16_t* rx_buff , uint16_t size);
 void LLP_SPI_CS_SCI_active_SDI_inactive(void);
 void LLP_SPI_CS_SCI_inactive_SDI_active(void);
 void LLP_SPI_DCS_active(void);
@@ -82,6 +82,6 @@ void LP_VS1003_register_write(uint8_t register_adres, uint16_t data);
 void LP_VS1003_set_bit(uint8_t register_adres, uint16_t bit);
 void LP_VS1003_reset_bit(uint8_t register_adres, uint16_t bit);
 
-void LP_VS1003_WRITE_DATA(uint8_t* co_tu_dac,uint16_t size);
+void LP_VS1003_WRITE_DATA(uint16_t* data,uint16_t size);
 
 #endif // LAYERS_PORT_H_
