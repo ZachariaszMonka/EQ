@@ -68,16 +68,15 @@
 //SCI_CLOCKF_FREQ
 #define SC_12_288Mhz 			1072
 
-//SCI_AUTODATA
-// jakieœ makro ?mo¿e funkcja ?
 
 
 
 
+void VS1003b_Init();
 void VS1003b_Record();
 void VS1003b_Play();
-void test_sin();		//Sin test 5168Hz  //5sec
-
+void VS1003b_test_sine();		//Sin test 5168Hz  //5sec
+void VS1003b_Set_Freq_Mult(uint16_t Mult);
 
 
 #endif	//VS1003b_H_

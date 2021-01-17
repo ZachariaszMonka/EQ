@@ -7,6 +7,20 @@
 
 #include "VS1003b.h"
 
+void VS1003b_Init()
+{
+	LP_init();
+	LP_VS1003_Hardware_reset();
+	LP_VS1003_set_bit(SCI_MODE,SM_SDISHARE);					//turn off xDCS turn on xCS to both SCI and SDI
+}
+void VS1003b_Set_Freq_Mult(uint16_t Mult)
+{
+	//basic clock Frequency: 12.288 Mhz
+	//Multiplication1 up to 4.5 with 0.5 step
+	// use prefix SC_MULT_ to chose
+	LP_VS1003_set_bit(SCI_CLOCKF,Mult);
+
+}
 //todo
 void VS1003b_Record()
 {
@@ -20,30 +34,17 @@ void VS1003b_Play()
 
 }
 
-void test_sin()		//Sin test 5168Hz  ///5s
+void VS1003b_test_sine()		//Sin test 5168Hz  ///5s
 {
-	uint8_t input[] = {0x53,0xEF,0x6E,0x7E,0x0,0x0,0x0,0x0};
-	uint8_t input2[] = {0x45,0x78,0x69,0x74,0x0,0x0,0x0,0x0};
-
-
-	LP_VS1003_set_bit(SCI_MODE,SM_TESTS);
-	LP_VS1003_set_bit(SCI_MODE,SM_SDISHARE);
-	LLP_DREQ_WAIT();
-
-
-	// replace this SDI funkcion transmit
-	LLP_SPI_CS_SCI_inactive_SDI_active();
-	LLP_SPI_write(input,sizeof(input));
-
-
+	uint8_t input[] = {0x53,0xEF,0x6E,0x7E,0x0,0x0,0x0,0x0};  	//turn on sequence
+	uint8_t input2[] = {0x45,0x78,0x69,0x74,0x0,0x0,0x0,0x0};	//turn off sequence
+	LP_init();
+	LP_VS1003_Hardware_reset();									//Reset
+	LP_VS1003_set_bit(SCI_MODE,SM_TESTS);						//turn on tests option
+	LP_VS1003_set_bit(SCI_MODE,SM_SDISHARE);					//turn off xDCS turn on xCS to both SCI and SDI
+	LP_VS1003_WRITE_DATA(input,sizeof(input));
 	LP_Delay(5000);
-
-	LLP_DREQ_WAIT();
-
-
-
-
-	LLP_SPI_write(input2,sizeof(input2));
+	LP_VS1003_WRITE_DATA(input2,sizeof(input2));
 }
 
 
