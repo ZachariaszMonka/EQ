@@ -418,3 +418,12 @@ void LP_VS1003_WRITE_DATA(uint16_t* data,uint16_t size)
 		LLP_SPI_CS_SCI_active_SDI_inactive();
 	}
 }
+
+void LP_VS1003_Hardware_reset(void)
+{
+	LLP_SPI_RES_active();
+	LP_Delay(5);
+	LLP_SPI_RES_inactive();
+	LP_Delay(5);
+	LP_VS1003_register_read(0); //first data is lost
+}

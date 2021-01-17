@@ -80,10 +80,9 @@ void LLP_DREQ_WAIT(void);
 
 uint16_t LP_VS1003_register_read(uint8_t register_adres);
 void LP_VS1003_register_write(uint8_t register_adres, uint16_t data);
-
 void LP_VS1003_set_bit(uint8_t register_adres, uint16_t bit);
 void LP_VS1003_reset_bit(uint8_t register_adres, uint16_t bit);
-
 void LP_VS1003_WRITE_DATA(uint16_t* data,uint16_t size);
 
+void LP_VS1003_Hardware_reset(void);
 #endif // LAYERS_PORT_H_
