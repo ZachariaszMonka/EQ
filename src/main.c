@@ -9,17 +9,10 @@
 #include "layers_port.h"
 #include "VS1003b.h"
 
-
-
-
-
-
-
 int main(void)
 {
 
 	LP_init();
-
 
 	LLP_SPI_RES_active();
 	LP_Delay(5);
@@ -31,6 +24,7 @@ int main(void)
 	LP_Delay(10);
 
 	uint16_t buff[] = {0xaaaa, 0x5555,0x0000,0xffff,0x0001,0x00ff};
+	LP_SPI_high_speed();
 
 	while(1)
 	{

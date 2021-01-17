@@ -32,7 +32,7 @@ void LP_init(void)
 	LLP_gpio.Pin = LP_pin_SCK|LP_pin_MISO|LP_pin_MOSI;
 	LLP_gpio.Mode = GPIO_MODE_AF_PP;
 	LLP_gpio.Pull = GPIO_PULLUP;
-	LLP_gpio.Speed = GPIO_SPEED_FREQ_MEDIUM;
+	LLP_gpio.Speed = GPIO_SPEED_FREQ_LOW;
 	LLP_gpio.Alternate = GPIO_AF5_SPI4;
 	HAL_GPIO_Init(LP_port_SPI, &LLP_gpio);
 
@@ -78,28 +78,8 @@ void LP_init(void)
 
 	//SPI4
 
-	__HAL_RCC_SPI4_CLK_ENABLE();
+	LP_SPI_low_speed();
 
-	LLP_hspi4.Instance = SPI4;
-	LLP_hspi4.Init.Mode = SPI_MODE_MASTER;
-	LLP_hspi4.Init.Direction = SPI_DIRECTION_2LINES;
-	LLP_hspi4.Init.DataSize = SPI_DATASIZE_16BIT;
-	LLP_hspi4.Init.CLKPolarity = SPI_POLARITY_LOW;
-	LLP_hspi4.Init.CLKPhase = SPI_PHASE_1EDGE;
-	LLP_hspi4.Init.NSS = SPI_NSS_SOFT;
-	LLP_hspi4.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128; //750kbps
-	LLP_hspi4.Init.FirstBit = SPI_FIRSTBIT_MSB;
-	LLP_hspi4.Init.TIMode = SPI_TIMODE_DISABLE;
-	LLP_hspi4.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-	LLP_hspi4.Init.CRCPolynomial = 7;
-	if (HAL_SPI_Init(&LLP_hspi4) != HAL_OK)
-	{
-		Error_Handler();
-	}
-
-	__HAL_SPI_ENABLE(&LLP_hspi4);
-
-	//LP_VS1003_register_read(0);
 	//end SPI4
 }
 
@@ -114,6 +94,57 @@ void LP_Delay(uint32_t Delay)
 	HAL_Delay(Delay);
 }
 
+void LP_SPI_low_speed(void)
+//750kbps
+{
+	__HAL_RCC_SPI4_CLK_ENABLE();
+
+	LLP_hspi4.Instance = SPI4;
+	LLP_hspi4.Init.Mode = SPI_MODE_MASTER;
+	LLP_hspi4.Init.Direction = SPI_DIRECTION_2LINES;
+	LLP_hspi4.Init.DataSize = SPI_DATASIZE_16BIT;
+	LLP_hspi4.Init.CLKPolarity = SPI_POLARITY_LOW;
+	LLP_hspi4.Init.CLKPhase = SPI_PHASE_1EDGE;
+	LLP_hspi4.Init.NSS = SPI_NSS_SOFT;
+	LLP_hspi4.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
+	LLP_hspi4.Init.FirstBit = SPI_FIRSTBIT_MSB;
+	LLP_hspi4.Init.TIMode = SPI_TIMODE_DISABLE;
+	LLP_hspi4.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+	LLP_hspi4.Init.CRCPolynomial = 7;
+	if (HAL_SPI_Init(&LLP_hspi4) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
+	__HAL_SPI_ENABLE(&LLP_hspi4);
+
+}
+
+void LP_SPI_high_speed(void)
+//8Mbps
+{
+	__HAL_RCC_SPI4_CLK_ENABLE();
+
+	LLP_hspi4.Instance = SPI4;
+	LLP_hspi4.Init.Mode = SPI_MODE_MASTER;
+	LLP_hspi4.Init.Direction = SPI_DIRECTION_2LINES;
+	LLP_hspi4.Init.DataSize = SPI_DATASIZE_16BIT;
+	LLP_hspi4.Init.CLKPolarity = SPI_POLARITY_LOW;
+	LLP_hspi4.Init.CLKPhase = SPI_PHASE_1EDGE;
+	LLP_hspi4.Init.NSS = SPI_NSS_SOFT;
+	LLP_hspi4.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
+	LLP_hspi4.Init.FirstBit = SPI_FIRSTBIT_MSB;
+	LLP_hspi4.Init.TIMode = SPI_TIMODE_DISABLE;
+	LLP_hspi4.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+	LLP_hspi4.Init.CRCPolynomial = 7;
+	if (HAL_SPI_Init(&LLP_hspi4) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
+	__HAL_SPI_ENABLE(&LLP_hspi4);
+
+}
 void LP_LED(LP_LED_COLOR color, LP_LED_STATUS status)
 {
 	//eg. LP_LED(LP_LED_ORANGE, LP_LED_ON);

@@ -65,6 +65,8 @@ volatile void LLP_iunerrup_tim10(void);
 void LP_init(void);
 void LP_LED(LP_LED_COLOR color, LP_LED_STATUS status);
 
+void LP_SPI_low_speed(void);
+void LP_SPI_high_speed(void);
 void LLP_SPI_write(uint16_t* tx_buff , uint16_t size);
 void LLP_SPI_read(uint16_t* rx_buff , uint16_t size);
 void LLP_SPI_read_write(uint16_t* tx_buff,uint16_t* rx_buff , uint16_t size);
