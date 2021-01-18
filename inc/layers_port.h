@@ -15,6 +15,7 @@
 	#include "stm32f4xx.h"
 #endif //includestm32f4xx_h_
 
+
 //todo pin and port in LLP
 #define LP_pin_LED_BLUE GPIO_PIN_15
 #define LP_pin_LED_RED GPIO_PIN_14
@@ -35,8 +36,11 @@
 
 //TODO encapsulation LLP
 GPIO_InitTypeDef LLP_gpio;
-TIM_HandleTypeDef LLP_tim10;
+volatile TIM_HandleTypeDef LLP_tim10;
 volatile SPI_HandleTypeDef LLP_hspi4;
+volatile DMA_HandleTypeDef LLP_dma_spi4_tx;
+volatile DMA_HandleTypeDef LLP_dma_spi4_rx;
+
 typedef enum
 {
 	LP_LED_OFF = 0U,
@@ -65,8 +69,10 @@ volatile void LLP_iunerrup_tim10(void);
 void LP_init(void);
 void LP_LED(LP_LED_COLOR color, LP_LED_STATUS status);
 
+
 void LP_SPI_low_speed(void);
 void LP_SPI_high_speed(void);
+void LLP_DMA_init(void);
 void LLP_SPI_write(uint16_t* tx_buff , uint16_t size);
 void LLP_SPI_read(uint16_t* rx_buff , uint16_t size);
 void LLP_SPI_read_write(uint16_t* tx_buff,uint16_t* rx_buff , uint16_t size);

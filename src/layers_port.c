@@ -76,11 +76,10 @@ void LP_init(void)
 	HAL_TIM_Base_Start_IT(&LLP_tim10);
 	//end timer 10
 
-	//SPI4
 
 	LP_SPI_low_speed();
+	LLP_DMA_init();
 
-	//end SPI4
 }
 
 void Error_Handler(void)
@@ -261,6 +260,47 @@ void SystemClock_Config(void)
 }
 
 
+void LLP_DMA_init(void)
+{
+	__HAL_RCC_DMA2_CLK_ENABLE();
+
+	HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+	HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
+
+	LLP_dma_spi4_tx.Instance = DMA2_Stream1;
+	LLP_dma_spi4_tx.Init.Channel = DMA_CHANNEL_4;
+	LLP_dma_spi4_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
+	LLP_dma_spi4_tx.Init.PeriphInc = DMA_PINC_DISABLE;
+	LLP_dma_spi4_tx.Init.MemInc = DMA_MINC_ENABLE;
+	LLP_dma_spi4_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+	LLP_dma_spi4_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+	LLP_dma_spi4_tx.Init.Mode = DMA_NORMAL;
+	LLP_dma_spi4_tx.Init.Priority = DMA_PRIORITY_LOW;
+	LLP_dma_spi4_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+	if (HAL_DMA_Init(&LLP_dma_spi4_tx) != HAL_OK)
+	{
+	  Error_Handler();
+	}
+	__HAL_LINKDMA(&LLP_hspi4, hdmatx, LLP_dma_spi4_tx);// dma can control spi
+
+	LLP_dma_spi4_rx.Instance = DMA2_Stream0;
+	LLP_dma_spi4_rx.Init.Channel = DMA_CHANNEL_4;
+	LLP_dma_spi4_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+	LLP_dma_spi4_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+	LLP_dma_spi4_rx.Init.MemInc = DMA_MINC_ENABLE;
+	LLP_dma_spi4_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+	LLP_dma_spi4_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+	LLP_dma_spi4_rx.Init.Mode = DMA_NORMAL;
+	LLP_dma_spi4_rx.Init.Priority = DMA_PRIORITY_LOW;
+	LLP_dma_spi4_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+	if (HAL_DMA_Init(&LLP_dma_spi4_rx) != HAL_OK)
+	{
+	  Error_Handler();
+	}
+	__HAL_LINKDMA(&LLP_hspi4,hdmarx,LLP_dma_spi4_rx);// dma can control spi
+}
 void LLP_SPI_write(uint16_t* tx_buff , uint16_t size)
 {
 	HAL_SPI_Transmit(&LLP_hspi4, tx_buff, size, HAL_MAX_DELAY);

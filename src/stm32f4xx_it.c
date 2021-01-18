@@ -33,3 +33,14 @@ void TIM1_UP_TIM10_IRQHandler(void)
 	HAL_TIM_IRQHandler(&LLP_tim10);
 
 }
+
+void DMA2_Stream0_IRQHandler(void)
+{
+	HAL_DMA_IRQHandler(&LLP_dma_spi4_rx);
+}
+
+
+void DMA2_Stream1_IRQHandler(void)
+{
+	HAL_DMA_IRQHandler(&LLP_dma_spi4_tx);
+}
