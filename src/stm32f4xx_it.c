@@ -42,6 +42,8 @@ void DMA2_Stream0_IRQHandler(void)
 
 void DMA2_Stream1_IRQHandler(void)
 {
+
+	LLP_iunerrup_dma_tx();
 	HAL_DMA_IRQHandler(&LLP_dma_spi4_tx);
 }
 
