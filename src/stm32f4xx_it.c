@@ -44,3 +44,9 @@ void DMA2_Stream1_IRQHandler(void)
 {
 	HAL_DMA_IRQHandler(&LLP_dma_spi4_tx);
 }
+
+void EXTI1_IRQHandler(void)
+{
+	LLP_interrup_EXTI1();
+	HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_1);
+}

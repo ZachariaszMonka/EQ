@@ -14,6 +14,8 @@ void LP_init(void)
 	SystemClock_Config();
 	//initialization peripheries using in port_layers library
 
+	//todo NVIC pioryty conf
+
 	//GPIO
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
@@ -77,16 +79,15 @@ void LP_init(void)
 	//end timer 10
 
 
+
 	LP_SPI_low_speed();
 	LLP_DMA_init();
 
 }
-
 void Error_Handler(void)
 {
 
 }
-
 void LP_Delay(uint32_t Delay)
 {
 	//idea sleep MCU
@@ -118,7 +119,6 @@ void LP_SPI_low_speed(void)
 	__HAL_SPI_ENABLE(&LLP_hspi4);
 
 }
-
 void LP_SPI_high_speed(void)
 //8Mbps
 {
@@ -180,6 +180,38 @@ void LP_LED(LP_LED_COLOR color, LP_LED_STATUS status)
 	}
 }
 
+void LLP_DREQ_mode_interrup(void)
+{
+	LLP_gpio.Pin = LP_pin_DREQ;
+	LLP_gpio.Mode = GPIO_MODE_IT_RISING_FALLING;
+	LLP_gpio.Pull = GPIO_PULLUP;
+	LLP_gpio.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(LP_port_RES, &LLP_gpio);
+
+	HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+}
+void LLP_DREQ_mode_pooling(void)
+{
+	LLP_gpio.Pin = LP_pin_DREQ;
+	LLP_gpio.Mode = GPIO_MODE_INPUT;
+	LLP_gpio.Pull = GPIO_PULLUP;
+	LLP_gpio.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(LP_port_RES, &LLP_gpio);
+	HAL_NVIC_DisableIRQ(EXTI1_IRQn);
+}
+volatile void LLP_interrup_EXTI1(void)
+{
+	if(HAL_GPIO_ReadPin(LP_port_RES, LP_pin_DREQ)==GPIO_PIN_RESET)
+	{//Wati
+		HAL_SPI_DMAPause(&LLP_hspi4);
+	}
+	if(HAL_GPIO_ReadPin(LP_port_RES, LP_pin_DREQ)==GPIO_PIN_SET)
+	{//Resume
+		HAL_SPI_DMAResume(&LLP_hspi4);
+	}
+
+}
 volatile void LLP_iunerrup_tim10(void)
 {
 	if(LLP_tim10_cycle++ == 5)
@@ -259,7 +291,6 @@ void SystemClock_Config(void)
 	}
 }
 
-
 void LLP_DMA_init(void)
 {
 	__HAL_RCC_DMA2_CLK_ENABLE();
@@ -314,7 +345,6 @@ void LLP_SPI_read_write(uint16_t* tx_buff,uint16_t* rx_buff , uint16_t size)
 {
 	HAL_SPI_TransmitReceive(&LLP_hspi4, tx_buff, rx_buff, size, HAL_MAX_DELAY);
 }
-
 
 void LLP_SPI_CS_SCI_inactive_SDI_active(void)
 {
@@ -437,9 +467,9 @@ void LP_VS1003_reset_bit(uint8_t register_adres, uint16_t bit)
 	LLP_SPI_write(&buf,1);
 	LLP_SPI_CS_SCI_inactive_SDI_active();
 }
-void LP_VS1003_WRITE_DATA(uint16_t* data,uint16_t size)
+void LP_VS1003_WRITE_DATA_pooling(uint16_t* data,uint16_t size)
 {
-
+	HAL_SPI_DMAStop(&LLP_hspi4);
 	uint16_t cycle = 0;
 	while(size > cycle)
 	{
@@ -459,6 +489,16 @@ void LP_VS1003_WRITE_DATA(uint16_t* data,uint16_t size)
 	}
 }
 
+void LP_VS1003_WRITE_DATA(uint16_t* data,uint16_t size)
+{
+	LLP_SPI_CS_SCI_active_SDI_inactive();
+	HAL_Delay(1);
+	HAL_SPI_DMAStop(&LLP_hspi4);
+	LLP_SPI_CS_SCI_inactive_SDI_active();
+	LLP_DREQ_WAIT();
+	LLP_DREQ_mode_interrup();
+	HAL_SPI_Transmit_DMA(&LLP_hspi4,data,size);
+}
 void LP_VS1003_Hardware_reset(void)
 {
 	LLP_SPI_RES_active();
