@@ -125,7 +125,7 @@ void LP_init(void)
 
 	//todo NVIC pioryty conf
 
-	//GPIO
+	//GPIO //todo external function
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	__HAL_RCC_GPIOC_CLK_ENABLE();
@@ -133,13 +133,14 @@ void LP_init(void)
 	__HAL_RCC_GPIOE_CLK_ENABLE();
 	__HAL_RCC_GPIOH_CLK_ENABLE();
 
+		//LEDs
 	LLP_gpio.Pin = LP_pin_LED_BLUE | LP_pin_LED_GREEN
 			| LP_pin_LED_ORANGE | LP_pin_LED_RED;
 	LLP_gpio.Mode = GPIO_MODE_OUTPUT_PP;
 	LLP_gpio.Pull = GPIO_NOPULL;
 	LLP_gpio.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(LP_port_LED, &LLP_gpio);
-
+		//VS1003
 	LLP_gpio.Pin = LP_pin_SCK|LP_pin_MISO|LP_pin_MOSI;
 	LLP_gpio.Mode = GPIO_MODE_AF_PP;
 	LLP_gpio.Pull = GPIO_PULLUP;
@@ -158,7 +159,10 @@ void LP_init(void)
 	LLP_gpio.Pull = GPIO_PULLUP;
 	LLP_gpio.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(LP_port_RES, &LLP_gpio);
-
+		//ADC
+	LLP_gpio.Mode = GPIO_MODE_ANALOG;
+	LLP_gpio.Pin = LP_pin_ADC;
+	HAL_GPIO_Init(LP_port_ADC, &LLP_gpio);
 
 	//GPIO END
 
@@ -171,7 +175,7 @@ void LP_init(void)
 	//VARIABLE END
 
 	//timer 10 (100ms)
-
+	//todo external function
 	HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 
 	__HAL_RCC_TIM10_CLK_ENABLE();
@@ -184,13 +188,17 @@ void LP_init(void)
 	LLP_tim10.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
 	HAL_TIM_Base_Init(&LLP_tim10);
 	HAL_NVIC_EnableIRQ(TIM1_UP_TIM10_IRQn);
-	HAL_TIM_Base_Start_IT(&LLP_tim10);
+	//HAL_TIM_Base_Start_IT(&LLP_tim10);//todo
 	//end timer 10
 
 
 
 	LP_SPI_low_speed();
 	LLP_DMA_init();
+	LLP_ADC_init();
+
+
+
 
 }
 
@@ -415,15 +423,61 @@ void LP_VS1003_Hardware_reset(void)
 	LP_VS1003_register_read(0); //first data is lost
 }
 
+void LLP_ADC_init(void)
+{
+	__HAL_RCC_ADC1_CLK_ENABLE();
+
+	LP_ADC.Instance = ADC1;
+	LP_ADC.Init.ContinuousConvMode = DISABLE;
+	LP_ADC.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T2_TRGO;
+	LP_ADC.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIG_EDGE_FALLING;
+	LP_ADC.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+	LP_ADC.Init.ScanConvMode = DISABLE;
+	LP_ADC.Init.NbrOfConversion = 1;
+	LP_ADC.Init.NbrOfDiscConversion = 1;
+	LP_ADC.Init.DiscontinuousConvMode = DISABLE;
+	LP_ADC.Init.ClockPrescaler = ADC_CLOCKPRESCALER_PCLK_DIV4; //25MHZ
+	LP_ADC.Init.Resolution = ADC_RESOLUTION12b;
+	LP_ADC.Init.DMAContinuousRequests = ENABLE;
+	HAL_ADC_Init(&LP_ADC);
+
+	//todo calibration
+	ADC_ChannelConfTypeDef LP_ADC_CH;
+	LP_ADC_CH.Channel = ADC_CHANNEL_1;
+	LP_ADC_CH.Rank = 1;
+	LP_ADC_CH.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+	HAL_ADC_ConfigChannel(&LP_ADC, &LP_ADC_CH);
+
+}
 void LLP_DMA_init(void)
 {
 	__HAL_RCC_DMA2_CLK_ENABLE();
-
+	//TODO function init all interrup (priority)
 	HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
 	HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
 	HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 0, 0);
 	HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
+	HAL_NVIC_SetPriority(DMA2_Stream4_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(DMA2_Stream4_IRQn);
 
+	//ADC
+	LLP_dma_adc.Instance = DMA2_Stream4;
+	LLP_dma_adc.Init.Channel = DMA_CHANNEL_0;
+	LLP_dma_adc.Init.Direction = DMA_PERIPH_TO_MEMORY;
+	LLP_dma_adc.Init.PeriphInc = DMA_PINC_DISABLE;
+	LLP_dma_adc.Init.MemInc = DMA_MINC_ENABLE;
+	LLP_dma_adc.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+	LLP_dma_adc.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+	LLP_dma_adc.Init.Mode = DMA_CIRCULAR;
+	LLP_dma_adc.Init.Priority = DMA_PRIORITY_MEDIUM;
+	LLP_dma_adc.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+	if (HAL_DMA_Init(&LLP_dma_adc) != HAL_OK)
+	{
+		Error_Handler();
+	}
+	__HAL_LINKDMA(&LP_ADC, DMA_Handle, LLP_dma_adc);
+
+	//SPI TX
 	LLP_dma_spi4_tx.Instance = DMA2_Stream1;
 	LLP_dma_spi4_tx.Init.Channel = DMA_CHANNEL_4;
 	LLP_dma_spi4_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
@@ -440,6 +494,7 @@ void LLP_DMA_init(void)
 	}
 	__HAL_LINKDMA(&LLP_hspi4, hdmatx, LLP_dma_spi4_tx);// dma can control spi
 
+	//SPI RX
 	LLP_dma_spi4_rx.Instance = DMA2_Stream0;
 	LLP_dma_spi4_rx.Init.Channel = DMA_CHANNEL_4;
 	LLP_dma_spi4_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;

@@ -26,10 +26,15 @@ void SysTick_Handler(void)
 #endif
 }
 
+
+
+
 void TIM1_UP_TIM10_IRQHandler(void)
 {
+	//todo check source of interrupt (tim10?)
 	//100ms
 	LLP_iunerrup_tim10();
+	LP_LED(LP_LED_RED,LP_LED_TOGLE);
 	HAL_TIM_IRQHandler(&LLP_tim10);
 
 }
@@ -47,6 +52,10 @@ void DMA2_Stream1_IRQHandler(void)
 	HAL_DMA_IRQHandler(&LLP_dma_spi4_tx);
 }
 
+void DMA2_Stream4_IRQHandler(void)
+{
+	HAL_DMA_IRQHandler(&LLP_dma_adc);
+}
 void EXTI1_IRQHandler(void)
 {
 	LLP_interrup_EXTI1();
