@@ -92,8 +92,9 @@ void LP_VS1003_WRITE_DATA(uint16_t* data,uint16_t size);
 void LP_VS1003_WRITE_DATA_wait_for_end(void);
 void LP_VS1003_Hardware_reset(void);
 
-void LLP_DMA_init(void);
+void LLP_TIM2_init(void);
 void LLP_ADC_init(void);
+void LLP_DMA_init(void);
 void LLP_DREQ_mode_interrup(void);
 void LLP_DREQ_mode_pooling(void);
 void LLP_SPI_write(uint16_t* tx_buff , uint16_t size);

@@ -188,7 +188,7 @@ void LP_init(void)
 	LLP_tim10.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
 	HAL_TIM_Base_Init(&LLP_tim10);
 	HAL_NVIC_EnableIRQ(TIM1_UP_TIM10_IRQn);
-	//HAL_TIM_Base_Start_IT(&LLP_tim10);//todo
+	HAL_TIM_Base_Start_IT(&LLP_tim10);
 	//end timer 10
 
 
@@ -196,6 +196,7 @@ void LP_init(void)
 	LP_SPI_low_speed();
 	LLP_DMA_init();
 	LLP_ADC_init();
+	LLP_TIM2_init();
 
 
 
@@ -423,6 +424,28 @@ void LP_VS1003_Hardware_reset(void)
 	LP_VS1003_register_read(0); //first data is lost
 }
 
+void LLP_TIM2_init(void)
+{
+	__HAL_RCC_TIM2_CLK_ENABLE();
+	tim2.Instance = TIM2;
+	tim2.Init.Period = 900;
+	tim2.Init.Prescaler = 1990;
+	tim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+	tim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+	tim2.Init.RepetitionCounter = 0;
+	tim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+	HAL_TIM_Base_Init(&tim2);
+
+	TIM_ClockConfigTypeDef timclk;
+	timclk.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+	HAL_TIM_ConfigClockSource(&tim2,&timclk);
+
+	TIM_MasterConfigTypeDef sMasterConfig = {0};
+	sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+	HAL_TIMEx_MasterConfigSynchronization(&tim2, &sMasterConfig);
+	HAL_TIM_Base_Start(&tim2);
+}
 void LLP_ADC_init(void)
 {
 	__HAL_RCC_ADC1_CLK_ENABLE();
@@ -430,14 +453,14 @@ void LLP_ADC_init(void)
 	LP_ADC.Instance = ADC1;
 	LP_ADC.Init.ContinuousConvMode = DISABLE;
 	LP_ADC.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T2_TRGO;
-	LP_ADC.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIG_EDGE_FALLING;
+	LP_ADC.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIG_EDGE_RISING;
 	LP_ADC.Init.DataAlign = ADC_DATAALIGN_RIGHT;
 	LP_ADC.Init.ScanConvMode = DISABLE;
 	LP_ADC.Init.NbrOfConversion = 1;
 	LP_ADC.Init.NbrOfDiscConversion = 1;
 	LP_ADC.Init.DiscontinuousConvMode = DISABLE;
 	LP_ADC.Init.ClockPrescaler = ADC_CLOCKPRESCALER_PCLK_DIV4; //25MHZ
-	LP_ADC.Init.Resolution = ADC_RESOLUTION12b;
+	LP_ADC.Init.Resolution = ADC_RESOLUTION12b; //1600kHz
 	LP_ADC.Init.DMAContinuousRequests = ENABLE;
 	HAL_ADC_Init(&LP_ADC);
 
@@ -445,8 +468,10 @@ void LLP_ADC_init(void)
 	ADC_ChannelConfTypeDef LP_ADC_CH;
 	LP_ADC_CH.Channel = ADC_CHANNEL_1;
 	LP_ADC_CH.Rank = 1;
-	LP_ADC_CH.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+	LP_ADC_CH.SamplingTime = ADC_SAMPLETIME_3CYCLES; //533kHz
 	HAL_ADC_ConfigChannel(&LP_ADC, &LP_ADC_CH);
+
+	HAL_ADC_Start(&LP_ADC);
 
 }
 void LLP_DMA_init(void)
