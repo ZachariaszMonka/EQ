@@ -15,8 +15,7 @@
 	#include "stm32f4xx.h"
 #endif //includestm32f4xx_h_
 
-volatile TIM_HandleTypeDef tim2; //todo test only
-volatile TIM_OC_InitTypeDef OC;
+
 
 //todo pin and port in LLP
 #define LP_pin_LED_BLUE GPIO_PIN_15
@@ -48,6 +47,8 @@ volatile ADC_HandleTypeDef LP_ADC;
 volatile DMA_HandleTypeDef LLP_dma_spi4_tx;
 volatile DMA_HandleTypeDef LLP_dma_spi4_rx;
 volatile DMA_HandleTypeDef LLP_dma_adc;
+volatile TIM_HandleTypeDef tim2; //todo LLP
+volatile TIM_OC_InitTypeDef OC; //todo LLP
 
 
 
@@ -55,8 +56,8 @@ typedef enum
 {
 	LP_LED_OFF = 0U,
 	LP_LED_ON = 1U,
-	LP_LED_BLINK_1Hz = 2U,
-	LP_LED_BLINK_5Hz = 3U,
+	//LP_LED_BLINK_1Hz = 2U, //todo
+	//LP_LED_BLINK_5Hz = 3U, //todo
 	LP_LED_TOGLE = 4U,
 } LP_LED_STATUS;
 
@@ -68,8 +69,18 @@ typedef enum
 	LP_LED_GREEN = 3U,
 } LP_LED_COLOR;
 
+typedef enum
+{
+	LLP_ADC_WAIT = 0U,
+	LLP_ADC_READY= 1U,
+	LLP_ADC_HALF= 2U,
+
+} LP_ADC_state;
+
 volatile LP_LED_STATUS LLP_led_tab[4];
 volatile uint8_t LLP_tim10_cycle;
+volatile LP_ADC_state LLP_ADC_tab;
+
 
 void SystemClock_Config(void);
 void Error_Handler(void);
@@ -91,6 +102,9 @@ void LP_VS1003_WRITE_DATA_pooling(uint16_t* data,uint16_t size);
 void LP_VS1003_WRITE_DATA(uint16_t* data,uint16_t size);
 void LP_VS1003_WRITE_DATA_wait_for_end(void);
 void LP_VS1003_Hardware_reset(void);
+void LP_ADC_read(uint16_t* data,uint16_t size);
+void LP_ADC_wait_FULL(void);
+void LP_ADC_wait_HALF(void);
 
 void LLP_TIM2_init(void);
 void LLP_ADC_init(void);

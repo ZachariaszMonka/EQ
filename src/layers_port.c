@@ -92,6 +92,7 @@ volatile void LLP_iunerrup_dma_tx(void)
 	//if(HAL_DMA_GetState(&LLP_dma_spi4_tx)==HAL_DMA_STATE_BUSY){}//half
 
 }
+/*
 volatile void LLP_iunerrup_tim10(void)
 {
 	if(LLP_tim10_cycle++ == 5)
@@ -117,6 +118,7 @@ volatile void LLP_iunerrup_tim10(void)
 	if(LLP_led_tab[LP_LED_RED] == LP_LED_BLINK_5Hz)
 		HAL_GPIO_TogglePin(LP_port_LED, LP_pin_LED_RED);
 }
+*/
 void LP_init(void)
 {
 	HAL_Init();
@@ -167,6 +169,7 @@ void LP_init(void)
 	//GPIO END
 
 	//VARIABLE
+	LLP_ADC_tab = LLP_ADC_READY;
 	LLP_led_tab[LP_LED_BLUE]   = LP_LED_OFF;
 	LLP_led_tab[LP_LED_RED]    = LP_LED_OFF;
 	LLP_led_tab[LP_LED_ORANGE] = LP_LED_OFF;
@@ -182,9 +185,9 @@ void LP_init(void)
 
 	LLP_tim10.Instance = TIM10;
 	LLP_tim10.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1; //96MHz
-	LLP_tim10.Init.Prescaler = 48000-1; //2kHz
+	LLP_tim10.Init.Prescaler = 10-1;//48000-1; //2kHz
 	LLP_tim10.Init.CounterMode = TIM_COUNTERMODE_UP;
-	LLP_tim10.Init.Period = 2*100-1;
+	LLP_tim10.Init.Period = 2*100-1;//48kHz //2*100-1; //10Hz
 	LLP_tim10.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
 	HAL_TIM_Base_Init(&LLP_tim10);
 	HAL_NVIC_EnableIRQ(TIM1_UP_TIM10_IRQn);
@@ -196,7 +199,7 @@ void LP_init(void)
 	LP_SPI_low_speed();
 	LLP_DMA_init();
 	LLP_ADC_init();
-	LLP_TIM2_init();
+	//LLP_TIM2_init();
 
 
 
@@ -423,6 +426,29 @@ void LP_VS1003_Hardware_reset(void)
 	LP_Delay(5);
 	LP_VS1003_register_read(0); //first data is lost
 }
+void LP_ADC_read(uint16_t* data,uint16_t size)
+{
+	//example
+	//uint16_t adc[99];
+	//LP_ADC_read(adc,99);
+	//LP_ADC_wait_FULL();
+	HAL_ADC_Stop_DMA(&LP_ADC);
+	LLP_ADC_tab = LLP_ADC_WAIT;
+	HAL_ADC_Start_DMA(&LP_ADC, data,size);
+}
+
+void LP_ADC_wait_FULL(void)
+{
+	while(LLP_ADC_tab != LLP_ADC_READY)
+	{}
+}
+
+void LP_ADC_wait_HALF(void)
+{
+	while(LLP_ADC_tab != LLP_ADC_HALF)
+	{}
+}
+
 
 void LLP_TIM2_init(void)
 {
@@ -452,7 +478,7 @@ void LLP_ADC_init(void)
 
 	LP_ADC.Instance = ADC1;
 	LP_ADC.Init.ContinuousConvMode = DISABLE;
-	LP_ADC.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T2_TRGO;
+	LP_ADC.Init.ExternalTrigConv = ADC_SOFTWARE_START;//ADC_EXTERNALTRIGCONV_T2_TRGO;
 	LP_ADC.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIG_EDGE_RISING;
 	LP_ADC.Init.DataAlign = ADC_DATAALIGN_RIGHT;
 	LP_ADC.Init.ScanConvMode = DISABLE;
@@ -493,14 +519,14 @@ void LLP_DMA_init(void)
 	LLP_dma_adc.Init.MemInc = DMA_MINC_ENABLE;
 	LLP_dma_adc.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
 	LLP_dma_adc.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
-	LLP_dma_adc.Init.Mode = DMA_CIRCULAR;
+	LLP_dma_adc.Init.Mode = DMA_NORMAL;
 	LLP_dma_adc.Init.Priority = DMA_PRIORITY_MEDIUM;
 	LLP_dma_adc.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 	if (HAL_DMA_Init(&LLP_dma_adc) != HAL_OK)
 	{
 		Error_Handler();
 	}
-	__HAL_LINKDMA(&LP_ADC, DMA_Handle, LLP_dma_adc);
+	__HAL_LINKDMA(&LP_ADC, DMA_Handle, LLP_dma_adc);// ADC can control DMA
 
 	//SPI TX
 	LLP_dma_spi4_tx.Instance = DMA2_Stream1;
@@ -517,7 +543,7 @@ void LLP_DMA_init(void)
 	{
 	  Error_Handler();
 	}
-	__HAL_LINKDMA(&LLP_hspi4, hdmatx, LLP_dma_spi4_tx);// dma can control spi
+	__HAL_LINKDMA(&LLP_hspi4, hdmatx, LLP_dma_spi4_tx);// SPI can control DMA
 
 	//SPI RX
 	LLP_dma_spi4_rx.Instance = DMA2_Stream0;
@@ -534,7 +560,7 @@ void LLP_DMA_init(void)
 	{
 	  Error_Handler();
 	}
-	__HAL_LINKDMA(&LLP_hspi4,hdmarx,LLP_dma_spi4_rx);// dma can control spi
+	__HAL_LINKDMA(&LLP_hspi4,hdmarx,LLP_dma_spi4_rx);// SPI can control DMA
 }
 void LLP_DREQ_mode_interrup(void)
 {

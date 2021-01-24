@@ -17,16 +17,21 @@ int main(void)
 
 	LP_init();
 
-	LP_LED(LP_LED_ORANGE,LP_LED_BLINK_5Hz);
+
+	uint16_t adc_A[768];
+	uint16_t adc_B[768];
 
 
-	uint16_t adc[99];
-
-	HAL_ADC_Start_DMA(&LP_ADC, adc,99);
+	LP_ADC_read(adc_B,768);
 
 	while(1)
 	{
-		HAL_Delay(1);
-		HAL_Delay(1);
+		LP_ADC_wait_FULL();
+		LP_ADC_read(adc_A,768);
+
+		LP_ADC_wait_FULL();
+		LP_ADC_read(adc_B,768);
+
+
 	}
 }
