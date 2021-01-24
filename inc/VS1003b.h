@@ -9,6 +9,8 @@
 
 #include "layers_port.h"
 
+//User application
+#define CODE_SIZE 411
 
 //SCI Registers
 #define SCI_MODE		0x0
@@ -21,7 +23,7 @@
 #define SCI_WRAMADDR	0x7
 #define SCI_HDAT0		0x8
 #define SCI_HDAT1		0x9
-#define SCI_AIADD		0xA
+#define SCI_AIADDR		0xA
 #define SCI_VOL			0xB
 #define SCI_AICTRL0		0xC
 #define SCI_AICTRL1		0xD
@@ -73,10 +75,22 @@
 
 
 void VS1003b_Init();
-void VS1003b_Record();
-void VS1003b_Play();
+void VS1003b_Record_with_header(uint8_t* header,uint16_t header_size,uint8_t* output, uint16_t output_size);
+void VS1003b_Record_ADPCM(uint8_t* output, uint16_t output_size);
+void VS1003b_Record_PCM(uint16_t* output, uint16_t output_size);
+void VS1003b_8bit_to_16Bit(uint8_t* input,uint16_t input_size,uint16_t* output, uint16_t output_size);
+void VS1003b_Play_48kHz_Init();
+void VS1003b_Play(uint16_t* buff,uint16_t buff_size);
 void VS1003b_test_sine();		//Sin test 5168Hz  //5sec
 void VS1003b_Set_Freq_Mult(uint16_t Mult);
+void VS1003b_Finish();
+void VS1003b_set_BASS_FREQ(uint8_t bassfreq);
+void VS1003b_set_BASS_Enhancemeeps(uint8_t bassenhancemeeps);
+void VS1003b_set_TRABLE_FREQ(uint8_t trablefreq);
+void VS1003b_set_TRABLE_CONTROL(uint8_t trablecontrol);
+void VS1003b_set_VOL_RIGHT(uint8_t vol);
+void VS1003b_set_VOL_LEFT(uint8_t vol);
+void VS1003b_set_VOL(uint8_t vol);
 
 
 #endif	//VS1003b_H_
