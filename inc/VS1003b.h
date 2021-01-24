@@ -75,12 +75,14 @@
 
 
 void VS1003b_Init();
-void VS1003b_Record_with_header(uint8_t* header,uint16_t header_size,uint8_t* output, uint16_t output_size);
+void VS1003b_Record_with_header_ADPCM(uint8_t* header,uint16_t header_size,uint8_t* output, uint16_t output_size);
 void VS1003b_Record_ADPCM(uint8_t* output, uint16_t output_size);
-void VS1003b_Record_PCM(uint16_t* output, uint16_t output_size);
+//void VS1003b_Record_PCM(uint16_t* output, uint16_t output_size);
+//void VS1003b_Record_with_header_PCM(uint16_t* header,uint16_t header_size,uint16_t* output, uint16_t output_size);
 void VS1003b_8bit_to_16Bit(uint8_t* input,uint16_t input_size,uint16_t* output, uint16_t output_size);
 void VS1003b_Play_48kHz_Init();
 void VS1003b_Play(uint16_t* buff,uint16_t buff_size);
+void VS1003b_END_Play();
 void VS1003b_test_sine();		//Sin test 5168Hz  //5sec
 void VS1003b_Set_Freq_Mult(uint16_t Mult);
 void VS1003b_Finish();
@@ -91,6 +93,6 @@ void VS1003b_set_TRABLE_CONTROL(uint8_t trablecontrol);
 void VS1003b_set_VOL_RIGHT(uint8_t vol);
 void VS1003b_set_VOL_LEFT(uint8_t vol);
 void VS1003b_set_VOL(uint8_t vol);
-
+void VS1003b_set_DIFF();
 
 #endif	//VS1003b_H_

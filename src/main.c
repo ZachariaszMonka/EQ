@@ -11,6 +11,13 @@
 
 int main()
 {
+	LP_init();
+	VS1003b_Init();
+	VS1003b_Play_48kHz_Init();
+	VS1003b_Play();
+	VS1003b_END_Play();
+
+
 
 }
 

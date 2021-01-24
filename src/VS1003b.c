@@ -11,8 +11,6 @@
 uint16_t clean[2048] = {0}; /// clean Buffer
 void VS1003b_Init()
 {
-	LP_init();
-	LP_Delay(5);
 	LP_VS1003_Hardware_reset();
 	LP_Delay(5);
 	LP_VS1003_set_bit(SCI_MODE,SM_SDISHARE);  //turn off xDCS turn on xCS to both SCI and SDI
@@ -214,6 +212,9 @@ void VS1003b_Finish()
 void VS1003b_Play(uint16_t* buff,uint16_t buff_size)
 {
 	LP_VS1003_WRITE_DATA(buff,buff_size);
+}
+void VS1003b_END_Play()
+{
 	LP_VS1003_WRITE_DATA_wait_for_end();
 }
 void VS1003b_set_BASS_FREQ(uint8_t bassfreq)
@@ -249,4 +250,8 @@ void VS1003b_set_VOL(uint8_t vol)
 {
 	VS1003b_set_VOL_LEFT(vol);
 	VS1003b_set_VOL_RIGHT(vol);
+}
+void VS1003b_set_DIFF()
+{
+	LP_VS1003_set_bit(SCI_MODE,SM_DIFF);
 }
