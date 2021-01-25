@@ -83,6 +83,16 @@ volatile void LLP_interrup_EXTI1(void)
 	}
 
 }
+
+volatile void LLP_interrup_EXTI3(void)
+{
+	if(HAL_GPIO_ReadPin(LP_port_SPI_ADC_CS, LP_pin_SPI_ADC_CS)==GPIO_PIN_RESET)
+	{
+		HAL_SPI_Receive(&LLP_hspi5, LP_ADC_EXTERNAL, 4, 2);
+	}
+
+
+}
 volatile void LLP_iunerrup_dma_tx(void)
 {
 	if(HAL_DMA_GetState(&LLP_dma_spi4_tx)==HAL_DMA_STATE_READY)
@@ -166,6 +176,30 @@ void LP_init(void)
 	LLP_gpio.Pin = LP_pin_ADC;
 	HAL_GPIO_Init(LP_port_ADC, &LLP_gpio);
 
+		//SPI to ADC //todo define for pin and port
+	LLP_gpio.Pin = GPIO_PIN_0|GPIO_PIN_8; //sck, mosi
+	LLP_gpio.Mode = GPIO_MODE_AF_PP;
+	LLP_gpio.Pull = GPIO_PULLUP;
+	LLP_gpio.Speed = GPIO_SPEED_FREQ_LOW;
+	LLP_gpio.Alternate = GPIO_AF6_SPI5;
+	HAL_GPIO_Init(GPIOB, &LLP_gpio);
+
+	LLP_gpio.Pin = GPIO_PIN_12; //miso
+	LLP_gpio.Mode = GPIO_MODE_AF_PP;
+	LLP_gpio.Pull = GPIO_PULLUP;
+	LLP_gpio.Speed = GPIO_SPEED_FREQ_LOW;
+	LLP_gpio.Alternate = GPIO_AF6_SPI5;
+	HAL_GPIO_Init(GPIOA, &LLP_gpio);
+
+	LLP_gpio.Pin = LP_pin_SPI_ADC_CS;
+	LLP_gpio.Mode = GPIO_MODE_IT_RISING_FALLING;
+	LLP_gpio.Pull = GPIO_PULLUP;
+	LLP_gpio.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(LP_port_SPI_ADC_CS, &LLP_gpio);
+
+	HAL_NVIC_SetPriority(EXTI3_IRQn, 1, 1);
+	HAL_NVIC_EnableIRQ(EXTI3_IRQn);
+
 	//GPIO END
 
 	//VARIABLE
@@ -200,11 +234,38 @@ void LP_init(void)
 	LLP_DMA_init();
 	LLP_ADC_init();
 	//LLP_TIM2_init();
-
+	LP_SPI_ADC();
 
 
 
 }
+
+void LP_SPI_ADC(void)
+{
+	__HAL_RCC_SPI5_CLK_ENABLE();
+
+	LLP_hspi5.Instance = SPI5;
+	LLP_hspi5.Init.Mode = SPI_MODE_SLAVE;
+	LLP_hspi5.Init.Direction = SPI_DIRECTION_2LINES;
+	LLP_hspi5.Init.DataSize = SPI_DATASIZE_8BIT;
+	LLP_hspi5.Init.CLKPolarity = SPI_POLARITY_LOW;
+	LLP_hspi5.Init.CLKPhase = SPI_PHASE_1EDGE;
+	LLP_hspi5.Init.NSS = SPI_NSS_SOFT;
+	//LLP_hspi5.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;//todo?
+	LLP_hspi5.Init.FirstBit = SPI_FIRSTBIT_MSB;
+	LLP_hspi5.Init.TIMode = SPI_TIMODE_DISABLE;
+	LLP_hspi5.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+	LLP_hspi5.Init.CRCPolynomial = 7;
+	if (HAL_SPI_Init(&LLP_hspi5) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
+	__HAL_SPI_ENABLE(&LLP_hspi5);
+
+}
+
+
 
 void LP_LED(LP_LED_COLOR color, LP_LED_STATUS status)
 {
@@ -436,19 +497,32 @@ void LP_ADC_read(uint16_t* data,uint16_t size)
 	LLP_ADC_tab = LLP_ADC_WAIT;
 	HAL_ADC_Start_DMA(&LP_ADC, data,size);
 }
-
 void LP_ADC_wait_FULL(void)
 {
 	while(LLP_ADC_tab != LLP_ADC_READY)
 	{}
 }
-
 void LP_ADC_wait_HALF(void)
 {
 	while(LLP_ADC_tab != LLP_ADC_HALF)
 	{}
 }
-
+uint8_t LP_ADC_EXTERNAL_CH_L(void)
+{
+	return LP_ADC_EXTERNAL[0];
+}
+uint8_t LP_ADC_EXTERNAL_CH_M(void)
+{
+	return LP_ADC_EXTERNAL[1];
+}
+uint8_t LP_ADC_EXTERNAL_CH_H(void)
+{
+	return LP_ADC_EXTERNAL[2];
+}
+uint8_t LP_ADC_EXTERNAL_CH_V(void)
+{
+	return LP_ADC_EXTERNAL[3];
+}
 
 void LLP_TIM2_init(void)
 {

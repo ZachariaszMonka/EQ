@@ -68,3 +68,10 @@ void EXTI1_IRQHandler(void)
 	LLP_interrup_EXTI1();
 	HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_1);
 }
+
+void EXTI3_IRQHandler(void)
+{
+	//externel ADC
+	LLP_interrup_EXTI3();
+	HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_3);
+}

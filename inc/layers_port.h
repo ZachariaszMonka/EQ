@@ -38,6 +38,9 @@
 #define LP_pin_ADC  GPIO_PIN_1
 #define LP_port_ADC  GPIOA
 
+#define LP_pin_SPI_ADC_CS  GPIO_PIN_3
+#define LP_port_SPI_ADC_CS  GPIOD
+
 
 //TODO encapsulation LLP
 GPIO_InitTypeDef LLP_gpio;
@@ -49,6 +52,11 @@ volatile DMA_HandleTypeDef LLP_dma_spi4_rx;
 volatile DMA_HandleTypeDef LLP_dma_adc;
 volatile TIM_HandleTypeDef tim2; //todo LLP
 volatile TIM_OC_InitTypeDef OC; //todo LLP
+volatile SPI_HandleTypeDef LLP_hspi5;
+volatile DMA_HandleTypeDef LLP_dma_spi5_rx;
+volatile DMA_HandleTypeDef LLP_dma_spi5_tx;
+
+
 
 
 
@@ -80,6 +88,7 @@ typedef enum
 volatile LP_LED_STATUS LLP_led_tab[4];
 volatile uint8_t LLP_tim10_cycle;
 volatile LP_ADC_state LLP_ADC_tab;
+volatile uint8_t LP_ADC_EXTERNAL[4];
 
 
 void SystemClock_Config(void);
@@ -105,6 +114,10 @@ void LP_VS1003_Hardware_reset(void);
 void LP_ADC_read(uint16_t* data,uint16_t size);
 void LP_ADC_wait_FULL(void);
 void LP_ADC_wait_HALF(void);
+uint8_t LP_ADC_EXTERNAL_CH_L(void);
+uint8_t LP_ADC_EXTERNAL_CH_M(void);
+uint8_t LP_ADC_EXTERNAL_CH_H(void);
+uint8_t LP_ADC_EXTERNAL_CH_V(void);
 
 void LLP_TIM2_init(void);
 void LLP_ADC_init(void);
