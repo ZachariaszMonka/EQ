@@ -5,84 +5,64 @@
   * @brief   main function.
   ******************************************************************************
 */
-#include"VS1003b.h"
-#include"layers_port.h"
 
+#include"layers_port.h"
+#include"VS1003b.h"
+#include <signals_z.h>
+
+uint16_t s0[2000];
+uint16_t s1[2000];
+uint16_t s2[2000];
+uint16_t s3[2000];
+uint16_t s4[2000];
+uint16_t lo_u[2000];
+uint16_t lo_i[2000];
+uint16_t hi_u[2000];
+uint16_t hi_i[2000];
+uint16_t input[2000];
+uint16_t input_i[2000];
+uint16_t output[2000];
 
 int main()
 {
 	LP_init();
 	VS1003b_Init();
+	syg_init();
 
 	VS1003b_Play_48kHz_Init();
 
-	//VS1003b_set_VOL(0);
-	uint16_t s0[2000];
-	uint16_t s1[2000];
-	uint16_t s2[2000];
-	uint16_t s3[2000];
 
-
-	//uint16_t s0[2000];
-
-	//READ 	wait for ADC
-	//GREEN wait for DAC
-	//BLUE  data processing
+	//READ  LED	wait for ADC
+	//GREEN LED wait for DAC
+	//BLUE  LED data processing
 	while(1)
 	{
 		LP_LED(LP_LED_RED,LP_LED_OFF);
 		LP_ADC_wait_FULL();
 		LP_LED(LP_LED_RED,LP_LED_ON);
-		LP_ADC_read(s0,2000);
-
-		//MIX
-		uint16_t Pot1 = 250; //Pot low
-		Pot1 = LP_ADC_EXTERNAL_CH_L();
-		uint16_t fir1[8] = {1,1,1,1,1,1,1,1};
-		uint16_t fir2[8] = {2,2,1,1,1,1,0,0};
-		uint16_t fir3[8] = {2,2,2,2,0,0,0,0};
-		uint16_t fir4[8] = {8,0,0,0,0,0,0,0};
-		uint16_t fir[8];
-		for(uint16_t i=0; i < 8; i++)
-		{
-			if(Pot1 < 50)
-				fir[i] = fir1[i];
-			if(Pot1 < 100 && Pot1 > 50)
-				fir[i] = fir2[i];
-			if(Pot1 < 50 && Pot1 > 100)
-				fir[i] = fir3[i];
-			if( Pot1 > 200)
-				fir[i] = fir4[i];
-		}
+		LP_ADC_read(input,2000);
 
 		LP_LED(LP_LED_BLUE,LP_LED_ON);
-		//FIR
+		uint8_t Volium;
+		uint8_t LowB;
+		uint8_t HighB;
+		LowB = LP_ADC_EXTERNAL_CH_L();
+		HighB = LP_ADC_EXTERNAL_CH_H();
+		Volium = LP_ADC_EXTERNAL_CH_V();
 
-		for(uint16_t i=0; i < 2000; i++)
-		{
-			uint16_t temp = 0;
-			for(uint16_t f=0; f < 8; f++)
-			{
-				if(i>=f)
-				{
-					temp += fir[f] * s0[i - f]/8;
-				}
-			}
-			s2[i] = temp;
-		}
+		int16_t fir1[8] = {10,10,10,10,10,10,10,10};
+		int16_t fir2[8] = {2,-6,10,-11,8,-3,1,0};
 
-		//DECODING
-		for(uint16_t i=0; i < 2000; i++)
-		{
-			s2[i] = s2[i] * 16;
-			if(s2[i] > 32768 )
-				s2[i] = s2[i] - 32768;
-			else
-				s2[i] = s2[i] + 32768;
+		syg_uint_to_int(input,input_i,2000);
+		syg_FIR(input_i,lo_i,2000,fir1);
+		syg_FIR(input_i,hi_i,2000,fir2);
+		syg_int_to_uint(lo_i,lo_u,2000);
+		syg_int_to_uint(hi_i,hi_u,2000);
 
-			s3[i] = s2[i]<<8 | s2[i]>>8;
-		}
+		syg_mix2(lo_u,LowB,hi_u,HighB,s1,2000);
+		syg_mix2(s1,Volium,s1,Volium,s3,2000);
 
+		syg_decoding(s3,output,2000);
 		LP_LED(LP_LED_BLUE,LP_LED_OFF);
 
 
@@ -90,7 +70,7 @@ int main()
 		LP_LED(LP_LED_GREEN,LP_LED_OFF);
 		LP_VS1003_WRITE_DATA_wait_for_end();
 		LP_LED(LP_LED_GREEN,LP_LED_ON);
-		VS1003b_Play(s3,2000);
+		VS1003b_Play(output,2000);
 	}
 }
 
